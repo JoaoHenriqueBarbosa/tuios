@@ -10007,3 +10007,14 @@ suite passes all 34 tests. The native `TestSixelShowsClippedAndClears`,
 `TestSixelScrollsWithThePane` and `TestSixelFallbacks` cases also pass.
 Browser artifacts are `image.png`, `after-clear.png` and `after-scroll.png`
 under each test's results directory.
+## Session listing push on a session change
+
+`TestRailRightClickKillsTheSessionUnderThePointer` kills `bravo` from the rail. Then it runs `tuios new charlie --detach` and `tuios kill-session charlie`. After each command, with no key or click, the rail must show the change within 1.5 seconds (issue #1225). The kill of `bravo` and the creation of `charlie` each send a listing push just before the next command. Run on 2026-10-27 on Linux, on branch `fix/listing-push-on-session-change` from `main` (`3d91716c0`).
+
+| Control: what was cut | Where it fails | Verdict |
+| --- | --- | --- |
+| None: `main` itself | "the rail showed charlie gone 2.953s after the command returned" | **caught** |
+| A session change never brings an armed timer forward (`if armed {` for `if armed && !armedAt.After(at) {` in `listingNotifier`) | "the rail showed charlie gone 2.946s after the command returned" | **caught** |
+| The positive half | none: three runs showed charlie in 100 to 103 ms and charlie gone in 102 to 103 ms | **guard** |
+
+With `TUIOS_E2E_FRAMES` set, the test writes `charlie-made.png` and `charlie-gone.png`.
