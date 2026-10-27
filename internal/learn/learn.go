@@ -92,6 +92,9 @@ type Model struct {
 	rest     Snapshot
 	theme    string // the theme the tour started with, for reset
 	tapeName string
+	// surfaces holds the TML surfaces tuios tml show opens. See
+	// surfaces.go.
+	surfaces *surfaceHost
 }
 
 // New wraps o for the tour. emit receives every event; it may be called from
@@ -114,6 +117,9 @@ func New(o *app.OS, emit func(Event), send func(tea.Msg)) *Model {
 		m.emit(Event{Type: EventNotification, Data: map[string]any{"message": message, "level": level}})
 	}
 	webshell.SetEventSink(m.fromGuest)
+	m.surfaces = &surfaceHost{m: m}
+	o.SetLearnTMLHost(m.surfaces.call)
+	webshell.SetSurfaceHost(m.surfaces.request)
 	m.last = take(o)
 	m.rest = m.last
 	m.theme = m.last.Theme
@@ -196,6 +202,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case playTapeMsg:
 		m.tapeName = msg.name
 		_, cmd = m.OS.Update(app.PlayTapeMsg{Name: msg.name, Script: msg.script})
+	case openSurfaceMsg, closeSurfaceWindowMsg:
+		cmd, _ = m.surfaces.update(msg)
+		// The window opened or closed outside the app's Update, which is
+		// where a change gets its frame.
+		_, after := m.OS.Update(commandDoneMsg{})
+		cmd = tea.Batch(cmd, after)
 	default:
 		next, c := m.OS.Update(msg)
 		if n, ok := next.(*app.OS); ok {
@@ -204,6 +216,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmd = c
 	}
 	m.report()
+	m.surfaces.sweep()
 	return m, cmd
 }
 

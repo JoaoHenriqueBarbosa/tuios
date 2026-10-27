@@ -79,6 +79,10 @@ type windowSnap struct {
 	AgentNote string
 	AgentKind string
 	Harness   string
+	// Kind is "tml" for a window that draws a TML surface, "" for a pane
+	// with a program in it. Popup says the window floats as a popup.
+	Kind  string
+	Popup bool
 }
 
 // Snapshot is the part of the app state a lesson checks steps against. It is
@@ -202,6 +206,7 @@ func take(o *app.OS) Snapshot {
 			X: w.X, Y: w.Y, W: w.Width, H: w.Height,
 			Minimized: w.Minimized, Zoomed: w.Zoomed, Floating: w.IsFloating,
 			Agent: w.AgentState, AgentNote: w.AgentMessage, AgentKind: w.AgentKind, Harness: w.AgentHarness,
+			Kind: w.Kind, Popup: w.IsPopup,
 		})
 	}
 	return s
@@ -250,6 +255,7 @@ func (s Snapshot) ToMap() map[string]any {
 			"x": w.X, "y": w.Y, "width": w.W, "height": w.H,
 			"minimized": w.Minimized, "zoomed": w.Zoomed, "floating": w.Floating,
 			"agent": w.Agent, "agentMessage": w.AgentNote,
+			"kind": w.Kind, "popup": w.Popup,
 		})
 	}
 	var usedList []any

@@ -6,9 +6,10 @@ import (
 	"strings"
 )
 
-// cmdTuios is the tuios command inside the demo. The one subcommand that does
-// something is tape play, which hands a tape to the tuios this shell runs in.
-// The rest say what they would do on a real machine.
+// cmdTuios is the tuios command inside the demo. tape play hands a tape to
+// the tuios this shell runs in, tml shows and draws TML surfaces (see
+// surfaces.go), and mermaid draws diagrams (see diagrams.go). The rest say
+// what they would do on a real machine.
 func cmdTuios(s *shell, args []string, _ string) int {
 	t := s.t
 	sub := argOr(args, 1, "")
@@ -30,6 +31,9 @@ func cmdTuios(s *shell, args []string, _ string) int {
 			lines = append(lines, table([][2]string{
 				{"tuios tape play demo.tape", "watch tuios drive itself"},
 				{"tuios tape list", "the tapes here"},
+				{"tuios tml show deploy.tml", "open a form, drawn by tuios"},
+				{"tuios tml render status.tml", "print a surface as text"},
+				{"tuios mermaid flow.mmd", "draw a diagram as text"},
 				{"tuios version", ""},
 			}, 2, green, cols)...)
 			lines = append(lines, "")
@@ -47,6 +51,10 @@ func cmdTuios(s *shell, args []string, _ string) int {
 		return 0
 	case "tape":
 		return tuiosTape(s, args[2:])
+	case "tml":
+		return cmdTuiosTML(s, args[2:])
+	case "mermaid":
+		return cmdMermaid(s, args[2:])
 	}
 	if printSample(t, sub) {
 		return 0
