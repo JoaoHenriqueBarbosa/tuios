@@ -590,6 +590,11 @@ func routeKey(msg tea.KeyPressMsg, o *app.OS) (*app.OS, tea.Cmd) {
 	// its keys must reach it.
 	// The message view and the log viewer are the last two: ctrl+b N opens the
 	// view over the rail, and its scroll and close keys must reach it.
+	// The rail pane gives the keyboard back on a leader chord, which then
+	// runs as it would have: the focus keys are how a person leaves it.
+	if o.RailPaneFocused() && !o.AnyOverlayOpen() && !o.PrefixActive && isLeaderKey(msg, &o.Settings, o.HostBaseCode(msg)) {
+		o.BlurSidebarSession()
+	}
 	if o.SidebarSessionFocused() && !o.AnyOverlayOpen() {
 		if msg.String() == "alt+esc" {
 			o.BlurSidebarSession()
