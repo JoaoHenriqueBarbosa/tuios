@@ -3016,7 +3016,7 @@ func (m *OS) handleMsg(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 			if err == nil {
 				// Keys will be processed sequentially via RemoteKeyMsg
 				// Show notification now, result will be sent after all keys processed
-				m.ShowNotification(notificationMsg, "info", m.Settings.NotificationDuration)
+				m.showRemoteNotice(notificationMsg)
 				return m, tea.Batch(cmd, relisten)
 			}
 		// capture_pane never arrives here: the daemon renders the pane from its
@@ -3196,7 +3196,7 @@ func (m *OS) handleMsg(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 			cmd, err = m.executeTapeScript(msg.TapeScript, msg.RequestID)
 			if err == nil {
 				if m.tapeStatusShown() {
-					m.ShowNotification(notificationMsg, "info", m.Settings.NotificationDuration)
+					m.showRemoteNotice(notificationMsg)
 				}
 				return m, tea.Batch(cmd, relisten)
 			}
@@ -3220,7 +3220,7 @@ func (m *OS) handleMsg(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		if err != nil {
 			m.ShowNotification(fmt.Sprintf("Remote error: %v", err), "error", m.Settings.NotificationDuration)
 		} else if notificationMsg != "" {
-			m.ShowNotification(notificationMsg, "info", m.Settings.NotificationDuration)
+			m.showRemoteNotice(notificationMsg)
 		}
 
 		// Send result back if we have a daemon client
