@@ -50,6 +50,11 @@ const (
 	EventShellStart      = webshell.EventCommandStart
 	EventShellCommand    = webshell.EventCommand
 	EventShellCwd        = webshell.EventCwd
+	EventFiles           = "files"
+	EventReviewMove      = "review.move"
+	EventReviewNote      = "review.note"
+	EventReviewSend      = "review.send"
+	EventWorktree        = webshell.EventWorktree
 )
 
 // Event is one thing that happened, as the page receives it.
@@ -92,6 +97,8 @@ type Model struct {
 	rest     Snapshot
 	theme    string // the theme the tour started with, for reset
 	tapeName string
+	// verbs are the daemon verbs the tour fakes. See callVerb.
+	verbs map[string]verbFunc
 }
 
 // New wraps o for the tour. emit receives every event; it may be called from
@@ -101,8 +108,11 @@ type Model struct {
 // New puts o in Learn mode and installs the fake shell's event sink, so there
 // is one tour per process.
 func New(o *app.OS, emit func(Event), send func(tea.Msg)) *Model {
-	m := &Model{OS: o, emit: emit, send: send}
+	m := &Model{OS: o, emit: emit, send: send, verbs: map[string]verbFunc{}}
 	o.LearnMode = true
+	o.SetLearnBackend(backend{})
+	m.registerReviewVerbs()
+	o.SetInboxVerbCaller(m.callVerb, learnNonce)
 	o.OnAction = func(action string) {
 		mode := "window"
 		if m.OS.Mode == app.TerminalMode {
@@ -141,6 +151,8 @@ func (m *Model) fromGuest(e webshell.Event) {
 		})
 	case webshell.EventTapePlay:
 		m.send(playTapeMsg{name: str("name"), script: str("script")})
+	case webshell.EventFilesChanged:
+		m.send(app.LearnFilesChangedMsg{})
 	default:
 		m.emit(Event{Type: e.Type, WindowID: e.WindowID, Data: e.Data})
 	}
