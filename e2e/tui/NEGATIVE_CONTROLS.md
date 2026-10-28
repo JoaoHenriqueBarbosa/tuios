@@ -9944,3 +9944,17 @@ The fixed build passes 12 of 12 runs under the same load. The first draft of
 the test waited a fixed 1.5 s and used zsh. The CI runners have no zsh, so no
 pane was made. A draft that made the next pane right after the prompt caught
 only 5 of 48 cases: the client resized the new pane after its prompt.
+## A named session keeps its name in a worktree group (#1245)
+
+`TestSidebarGroupsWorktrees` creates a session called `mine` outside the
+repository and moves its pane into the `feat/one` worktree with `send-text`.
+The rail files it under the repository row. The row must read `└─ mine
+feat/one`, and after `set-session-name -s mine "My label"` it must read
+`└─ My label`. Run on 2026-10-28 on Linux.
+
+| Control: what was cut | Where it fails | Verdict |
+| --- | --- | --- |
+| The whole fix: `Named` on the session node, `sessionNamed`, and the named branch in `sidebarWorktreeLabel` and the row's branch | the row reads `└─ feat/one`, the same label as the session that tuios made for that branch | **caught** |
+
+With `TUIOS_E2E_FRAMES` set, the test writes `rail-worktree-named.png` and
+`rail-worktree-display-name.png`.
